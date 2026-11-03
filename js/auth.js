@@ -20,6 +20,8 @@ const ERR = {
   'auth/network-request-failed': 'Nema interneta. Za prijavu je potrebna veza.',
   'auth/popup-closed-by-user': 'Prijava je prekinuta. Pokušaj ponovno.',
   'auth/cancelled-popup-request': 'Prijava je prekinuta. Pokušaj ponovno.',
+  'auth/operation-not-allowed': 'Google prijava nije uključena u Firebaseu (Authentication → Sign-in method → Google).',
+  'auth/unauthorized-domain': 'Ova domena nije dopuštena u Firebaseu (Authentication → Settings → Authorized domains).',
   'auth/account-exists-with-different-credential': 'Za taj email već postoji račun s drugim načinom prijave.',
 };
 
@@ -80,7 +82,8 @@ actions.google = async () => {
       // Neki preglednici (npr. instalirana aplikacija) ne dopuštaju skočni prozor.
       try { await A.signInWithRedirect(auth, provider); return; } catch (e2) { e = e2; }
     }
-    msg = ERR[e.code] || 'Prijava Googleom nije uspjela. Pokušaj ponovno.';
+    console.error(e);
+    msg = ERR[e.code] || `Prijava Googleom nije uspjela (${e.code || 'nepoznata greška'}).`;
   }
   busy = false; emit();
 };
