@@ -27,11 +27,11 @@ export function wizardView() {
   const head = `<div class="progress" aria-hidden="true"><i style="width:${((step + 1) / STEPS.length) * 100}%"></i></div>
     <div class="row between small muted" style="margin-top:8px"><span>Korak ${step + 1} od ${STEPS.length}</span>${step > 0 && k !== 'plan' ? '<button class="link" data-act="wiz-back">Natrag</button>' : ''}</div>`;
   let body = '';
-  if (k === 'height') body = q('Koliko si visok?', 'Visina u centimetrima.') + numField('height', 'cm', 'numeric');
+  if (k === 'height') body = q('Kolika ti je visina?', 'Visina u centimetrima.') + numField('height', 'cm', 'numeric');
   if (k === 'weight') body = q('Koliko imaš kilograma?', 'Danas, otprilike. Kasnije je možeš ažurirati.') + numField('weight', 'kg', 'decimal');
   if (k === 'sex') body = q('Spol', 'Treba nam za kasnije usporedbe snage. Možeš i ne navesti.') +
     `<div class="seg fill">${[['m', 'Muško'], ['f', 'Žensko'], ['o', 'Drugo'], ['n', 'Radije ne navodim']].map(([v, l]) => `<button class="chip ${data.sex === v ? 'on' : ''}" data-act="wiz-sex" data-v="${v}">${l}</button>`).join('')}</div>`;
-  if (k === 'birth') body = q('Koje si godine rođen?', 'Samo godina, npr. 1995.') + numField('birth', 'god.', 'numeric');
+  if (k === 'birth') body = q('Koja je tvoja godina rođenja?', 'Samo godina, npr. 1995.') + numField('birth', 'god.', 'numeric');
   if (k === 'units') body = q('Mjerne jedinice', 'Za sada koristimo kilograme.') +
     `<div class="seg"><button class="chip on" disabled>kg (kilogrami)</button></div>`;
   if (k === 'plan') body = `<h2 class="wiz-q">Tvoj plan treninga</h2>

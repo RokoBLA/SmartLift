@@ -97,7 +97,7 @@ function entryForm(a, e, i) {
       <button class="icon-btn" data-act="adj" data-i="${i}" data-f="r" data-d="1" aria-label="Više">+</button></div>
     <div class="field-label">Koliko ponavljanja je ostalo u rezervi? <small>RIR</small></div>
     <div class="rir">${[0, 1, 2, 3, 4].map((n) => `<button class="chip ${d.rir === n ? 'on' : ''}" data-act="rir" data-i="${i}" data-v="${n}">${n}</button>`).join('')}</div>
-    <p class="hint" style="margin-top:6px">0 = nisi mogao ni jedno više, 4 = bilo je lagano.</p>
+    <p class="hint" style="margin-top:6px">0 = ni jedno više nije išlo, 4 = bilo je lagano.</p>
     <label class="switch"><input type="checkbox" ${d.warm ? 'checked' : ''} data-chg="warm" data-i="${i}"> Zagrijavajuća serija</label>
     <button class="btn primary block" data-act="set-save" data-i="${i}">Spremi seriju</button></div>`;
 }
@@ -115,7 +115,7 @@ actions['start-day'] = (el) => {
   if (!hurt.length) return go();
   confirmSheet({
     title: 'Ovaj dan uključuje grupu koja te boli',
-    text: `Označio si da te boli: ${hurt.map((m) => MUSCLES[m].name).join(', ')}. Preporuka je odmoriti, a ako bol traje, posavjetuj se s liječnikom ili fizioterapeutom. Svejedno započeti?`,
+    text: `Označeno je da te boli: ${hurt.map((m) => MUSCLES[m].name).join(', ')}. Preporuka je odmoriti, a ako bol traje, posavjetuj se s liječnikom ili fizioterapeutom. Svejedno započeti?`,
     ok: 'Svejedno kreni', danger: true, onOk: go,
   });
 };
@@ -157,7 +157,7 @@ actions['wk-finish'] = () => {
   const a = state.active;
   const sets = a.exercises.reduce((n, e) => n + e.log.length, 0);
   const done = () => { finishActive(); stopRest(); openEx = null; Object.keys(drafts).forEach((k) => delete drafts[k]); location.hash = '#/home'; toast('Trening spremljen. Dobar posao!'); };
-  if (!sets) return confirmSheet({ title: 'Završiti bez serija?', text: 'Nisi unio nijednu seriju pa se ovaj trening neće spremiti.', ok: 'Završi', onOk: done });
+  if (!sets) return confirmSheet({ title: 'Završiti bez serija?', text: 'Nije unesena nijedna serija pa se ovaj trening neće spremiti.', ok: 'Završi', onOk: done });
   confirmSheet({ title: 'Završiti trening?', text: 'Serije su već spremljene. Oporavak mišića računa se prema njima.', ok: 'Završi trening', onOk: done });
 };
 

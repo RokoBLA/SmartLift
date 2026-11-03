@@ -46,7 +46,7 @@ export function suggest(ex, hist, step = 2.5) {
   // Zadnja serija prošlog treninga bila je do otkaza, a zadnji trening nije napredovao.
   if (prev && prev.lastRir === 0 && !progressed(last, prev)) {
     return { kind: 'hold-fail', weight: last.top, reps: Math.min(repMax, Math.max(repMin, ...last.atTop.map((s) => s.r))),
-      text: `Zadrži ${fmt(last.top)} kg. Zadnji put si išao do otkaza bez napretka, ostavi 1–2 ponavljanja u rezervi.` };
+      text: `Zadrži ${fmt(last.top)} kg. Zadnja serija prošli put bila je do otkaza bez napretka, ostavi 1–2 ponavljanja u rezervi.` };
   }
 
   const minReps = Math.min(...last.atTop.map((s) => s.r));

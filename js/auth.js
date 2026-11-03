@@ -26,7 +26,7 @@ const ERR = {
 };
 
 export function authView() {
-  const title = { login: 'Dobro došao natrag', register: 'Napravi račun', reset: 'Zaboravljena lozinka' }[mode];
+  const title = { login: 'Dobrodošli natrag', register: 'Napravi račun', reset: 'Zaboravljena lozinka' }[mode];
   const sub = { login: 'Prijavi se da nastaviš s treninzima.', register: 'Treba ti samo email i lozinka.', reset: 'Upiši email i poslat ćemo ti poveznicu za novu lozinku.' }[mode];
   return `<section class="auth stack-lg">
     <div><h1>${title}</h1><p class="muted" style="margin-top:6px">${sub}</p></div>

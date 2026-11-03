@@ -8,7 +8,7 @@ import { NOTICE } from './wizard.js';
 import { zoomMap, recoveryColor } from './zoom.js';
 
 const EGG_TITLE = 'Boli te baš SVE?';
-const EGG_TEXT = 'To više nije trening, to je život. Službeno ti je dopušteno ležati na kauču, piti vodu i gledati u strop. Ako stvarno boli, javi se liječniku ili fizioterapeutu. A ako te ne boli ništa, a klikao si iz zabave: vidimo te. 😄';
+const EGG_TEXT = 'To više nije trening, to je život. Službeno ti je dopušteno ležati na kauču, piti vodu i gledati u strop. Ako stvarno boli, javi se liječniku ili fizioterapeutu. A ako te ništa ne boli i samo se zabavljaš: vidimo te. 😄';
 
 export const PAIN_TEXT = 'Odmori / preporučeno se posavjetuj s liječnikom ili fizioterapeutom';
 
@@ -51,7 +51,7 @@ export function homeView() {
     ${!state.doc?.noticeSeen ? `<div class="notice accent"><p>${esc(NOTICE)}</p><button class="link" style="margin-top:8px" data-act="notice-ok">Razumijem</button></div>` : ''}
     ${next}
     ${days.length && !state.sessions.length && !state.active ? '<p class="center muted">Još nema treninga. Odaberi dan i kreni.</p>' : ''}
-    ${needW ? `<div class="notice"><p>${lw ? 'Prošlo je više od tjedan dana od zadnjeg vaganja.' : 'Još nisi upisao tjelesnu težinu.'}</p><button class="link" style="margin-top:6px" data-act="bw-add">Upiši težinu</button></div>` : ''}
+    ${needW ? `<div class="notice"><p>${lw ? 'Prošlo je više od tjedan dana od zadnjeg vaganja.' : 'Tjelesna težina još nije upisana.'}</p><button class="link" style="margin-top:6px" data-act="bw-add">Upiši težinu</button></div>` : ''}
   </div>
   <h2 class="section-title">Oporavak mišića</h2>
   ${MUSCLE_ORDER.map((m) => muscleCard(m, rec[m], !!p[m], partRec[m])).join('')}
@@ -85,6 +85,6 @@ function muscleCard(m, r, hurt, parts) {
 
 actions.pain = (el) => {
   setPain(el.dataset.m, el.dataset.on === '1');
-  if (MUSCLE_ORDER.every((m) => pain()[m])) toast(EGG_TITLE + ' Odmori, prijatelju.', { ms: 6000 });
+  if (MUSCLE_ORDER.every((m) => pain()[m])) toast(EGG_TITLE + ' Odmori se.', { ms: 6000 });
 };
 actions['notice-ok'] = () => saveDoc({ noticeSeen: true });
