@@ -1,6 +1,6 @@
 // Service worker: aplikacija radi bez interneta.
 // Firestore API pozivi ne prolaze kroz spremnik (nju rješava Firestore offline podrška).
-const VERSION = 'smartlift-v11';
+const VERSION = 'smartlift-v12';
 const SHELL = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/styles.css',
   'js/app.js', 'js/firebase.js', 'js/store.js', 'js/ui.js', 'js/util.js', 'js/auth.js', 'js/wizard.js',
