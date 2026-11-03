@@ -1,6 +1,6 @@
-// Uvećani prikaz mišićne grupe s podskupinama obojenima prema oporavku.
-// Boja: crveno (tek trenirano) → narančasto → zeleno (spremno).
-// Oblici su nacrtani rukom (krivulje) da nalikuju mišićima: prsa kao dva lepeza, leđa kao krila, itd.
+// Uvećani prikaz mišićne grupe: anatomska skica mišićavog tijela s crnom vanjskom linijom.
+// Mišići koji pripadaju grupi obojeni su prema oporavku (crveno → narančasto → zeleno), ostali su sivi.
+// Tijelo je nacrtano u platnu 200 × 400 (sprijeda i straga); svaka grupa prikazuje samo svoj izrez.
 import { clamp } from './util.js';
 
 const STOPS = [[0, [196, 80, 63]], [50, [224, 138, 46]], [100, [92, 154, 107]]];
@@ -13,112 +13,88 @@ export function recoveryColor(pct) {
   return `rgb(${c0.map((v, k) => Math.round(v + (c1[k] - v) * t)).join(',')})`;
 }
 
-const SEP = 'stroke="var(--card)" stroke-width="1.3" stroke-linejoin="round"';
-const MIRROR = 'transform="translate(100 0) scale(-1 1)"';
-const path = (d, c, extra = '') => `<path d="${d}" fill="${c}" ${SEP} ${extra}/>`;
-const P = (d) => (c) => path(d, c);                          // jedan oblik
-const PM = (d) => (c) => path(d, c) + path(d, c, MIRROR);    // oblik i njegov zrcalni par
-const N = (d, extra = '') => `<path d="${d}" fill="var(--body)" ${extra}/>`;   // neutralan (kontekst)
-const NM = (d) => N(d) + N(d, MIRROR);
+const MIRROR = 'transform="translate(200 0) scale(-1 1)"';
 
-// Podkontura ruke (kontekst za biceps i triceps).
-const ARM_CTX = N('M30 3 Q50 -3 70 3 Q82 38 73 70 Q71 92 50 97 Q29 92 27 70 Q18 38 30 3 Z');
+// ---- obris tijela (isti sprijeda i straga) ----
+const SILHOUETTE = [
+  ['M85 30 a15 19 0 1 0 30 0 a15 19 0 1 0 -30 0 Z', false],
+  ['M90 44 L110 44 L114 64 L86 64 Z', false],
+  ['M56 70 Q76 60 100 62 Q124 60 144 70 Q158 84 156 112 Q150 150 142 196 Q138 222 134 238 L66 238 Q62 222 58 196 Q50 150 44 112 Q42 84 56 70 Z', false],
+  ['M48 74 Q28 80 24 106 Q20 130 26 156 Q20 184 18 214 L14 238 Q12 254 16 266 Q26 270 34 264 Q36 246 40 224 Q50 194 54 166 Q62 136 62 108 Q64 84 48 74 Z', true],
+  ['M68 232 Q54 252 54 292 Q56 318 66 332 Q60 360 62 394 Q62 404 74 404 Q86 404 86 396 Q88 364 86 332 Q96 316 98 290 Q102 258 98 236 Z', true],
+];
 
-// Redoslijed dijelova isti je kao MUSCLES[m].parts u exercises.js.
-const D = {
-  // gornji, srednji, donji dio prsa: dva prsna mišića u obliku lepeze od prsne kosti prema ruci
-  prsa: {
-    ctx: N('M40 4 Q50 13 60 4 L65 16 Q50 24 35 16 Z') + NM('M3 30 Q-2 48 8 62 Q14 56 12 36 Z') + N('M37 66 Q50 74 63 66 L61 94 Q50 98 39 94 Z'),
-    o: 'M52 19 Q72 15 91 29 Q96 45 84 57 Q68 69 52 63 Z M48 19 Q28 15 9 29 Q4 45 16 57 Q32 69 48 63 Z',
-    parts: [P('M0 0 H100 V32 Q78 45 52 34 Q26 45 0 32 Z'), P('M0 32 Q26 45 52 34 Q78 45 100 32 V49 Q78 59 52 49 Q26 59 0 49 Z'), P('M0 49 Q26 59 52 49 Q78 59 100 49 V100 H0 Z')],
-    extra: '<path d="M50 17 V65" stroke="var(--card)" stroke-width="1.6" fill="none"/>' +
-           '<g stroke="var(--card)" stroke-width=".8" fill="none" opacity=".7"><path d="M54 30 Q72 28 88 34 M54 40 Q72 40 88 46 M54 52 Q70 52 82 56"/><path d="M46 30 Q28 28 12 34 M46 40 Q28 40 12 46 M46 52 Q30 52 18 56"/></g>',
-  },
+// ---- mišići: [id, putanja, zrcalni par?]. id = "grupa:indeks dijela" ili "x:..." za sive mišiće ----
+const FRONT = [
+  ['x:shin', 'M64 336 Q62 364 66 392 L80 394 Q86 364 84 336 Z', true],
+  ['noge:0', 'M70 240 Q58 258 58 292 Q60 316 72 326 Q88 318 92 292 Q98 262 94 242 Q82 232 70 240 Z', true],
+  ['prsa:0', 'M98 72 Q82 67 66 72 Q62 78 62 88 Q80 84 98 91 Z', true],
+  ['prsa:1', 'M62 88 Q80 84 98 91 L98 106 Q80 103 63 103 Q60 95 62 88 Z', true],
+  ['prsa:2', 'M63 103 Q80 103 98 106 L98 114 Q92 124 78 122 Q66 116 63 103 Z', true],
+  ['trbuh:2', 'M82 126 Q70 138 68 168 Q68 198 78 218 Q84 204 84 172 Q84 148 82 126 Z', true],
+  ['trbuh:0', 'M85 128 Q85 126 88 126 H97 V144 H85 Z M85 147 H97 V165 H85 Z', true],
+  ['trbuh:1', 'M85 168 H97 V186 H85 Z M85 189 H97 V204 Q91 210 85 204 Z', true],
+  ['ramena:0', 'M66 68 Q54 64 46 72 Q44 90 50 104 Q60 96 64 82 Q68 74 66 68 Z', true],
+  ['ramena:1', 'M46 72 Q36 74 32 88 Q30 106 38 124 Q46 114 50 104 Q44 90 46 72 Z', true],
+  ['biceps:2', 'M34 128 Q30 142 36 154 Q40 158 44 158 Q38 146 38 134 Z', true],
+  ['biceps:0', 'M42 108 Q35 116 36 134 Q38 148 44 158 Q48 144 48 130 Q48 116 42 108 Z', true],
+  ['biceps:1', 'M48 110 Q48 126 48 132 Q48 146 44 158 Q54 154 58 142 Q60 124 56 112 Q54 106 48 110 Z', true],
+  ['podlaktice:1', 'M28 166 Q24 192 26 230 L32 234 Q36 212 42 168 Q38 160 32 162 Z', true],
+  ['podlaktice:0', 'M42 164 Q44 184 36 212 L32 234 L38 236 Q48 214 52 188 Q54 170 50 162 Q46 160 42 164 Z', true],
+];
 
-  // širina (lat), debljina (sredina leđa), donja leđa, trapez: pogled straga
-  leđa: {
-    ctx: N('M26 10 Q50 0 74 10 Q97 20 97 40 Q92 72 78 94 L22 94 Q8 72 3 40 Q3 20 26 10 Z'),
-    parts: [
-      PM('M70 40 Q84 36 93 28 Q98 54 83 77 Q72 84 60 81 Q56 67 51 61 Q66 55 70 40 Z'),
-      P('M50 28 Q59 30 67 39 Q65 53 50 59 Q35 53 33 39 Q41 30 50 28 Z'),
-      P('M41 63 Q50 59 59 63 L61 90 Q50 96 39 90 Z'),
-      P('M50 4 Q59 8 69 12 Q85 16 93 25 Q81 33 67 39 Q59 30 50 28 Q41 30 33 39 Q19 33 7 25 Q15 16 31 12 Q41 8 50 4 Z'),
-    ],
-    extra: '<path d="M50 6 V92" stroke="var(--card)" stroke-width="1" fill="none" opacity=".6"/>',
-  },
+const BACK = [
+  ['x:calfbase', 'M66 380 Q68 392 72 398 L80 398 Q82 390 82 380 Z', true],
+  ['noge:3', 'M63 336 Q56 356 64 378 Q72 388 82 378 Q90 356 84 336 Q72 328 63 336 Z', true],
+  ['noge:1', 'M64 266 Q58 292 62 320 Q72 332 86 324 Q96 298 94 266 Q80 258 64 266 Z', true],
+  ['noge:2', 'M98 214 Q80 206 64 222 Q58 246 74 264 Q92 268 98 252 Z', true],
+  ['leđa:0', 'M66 118 Q52 136 58 168 Q66 196 86 210 Q92 190 90 164 Q86 140 72 124 Z', true],
+  ['leđa:2', 'M98 144 Q88 150 87 176 Q86 200 91 218 L98 220 Z', true],
+  ['leđa:1', 'M100 100 Q74 88 64 76 Q60 102 70 122 Q84 130 100 142 Q116 130 130 122 Q140 102 136 76 Q126 88 100 100 Z', false],
+  ['leđa:3', 'M100 52 Q82 58 62 70 Q70 84 100 100 Q130 84 138 70 Q118 58 100 52 Z', false],
+  ['ramena:2', 'M60 70 Q44 70 36 88 Q32 106 40 122 Q54 114 60 98 Q66 84 60 70 Z', true],
+  ['triceps:1', 'M38 108 Q27 122 30 144 Q34 158 44 162 Q46 144 46 126 Q46 114 38 108 Z', true],
+  ['triceps:0', 'M50 110 Q44 120 44 138 Q46 152 50 162 Q58 148 60 130 Q60 116 50 110 Z', true],
+  ['triceps:2', 'M36 142 Q46 150 58 142 Q58 158 50 170 Q40 168 36 142 Z', true],
+];
 
-  // prednja strana bedra, stražnja strana bedra, stražnjica, listovi (lijevo noga sprijeda, desno straga)
-  noge: {
-    ctx: N('M17 65 Q25 63 33 65 Q36 80 31 95 L21 95 Q14 80 17 65 Z') + N('M50 4 V96', 'stroke="var(--line)" stroke-width="1" opacity=".0"'),
-    parts: [
-      P('M22 6 Q38 9 40 34 Q41 52 35 63 Q26 68 19 63 Q11 52 11 34 Q11 11 22 6 Z'),
-      P('M64 36 Q76 39 89 36 Q94 52 87 64 Q78 69 70 64 Q61 52 64 36 Z'),
-      P('M62 6 Q82 2 95 13 Q99 28 89 35 Q75 40 64 33 Q55 22 62 6 Z'),
-      P('M68 67 Q80 65 87 67 Q94 78 85 95 Q78 98 71 95 Q62 80 68 67 Z'),
-    ],
-    extra: '<path d="M26 12 Q30 36 25 60" stroke="var(--card)" stroke-width="1" fill="none" opacity=".7"/>',
-  },
-
-  // prednji, bočni, stražnji dio ramena: pogled sa strane (lice udesno)
-  ramena: {
-    ctx: N('M41 76 Q50 86 59 76 L61 98 L39 98 Z') + N('M30 14 Q50 0 70 14 L64 20 Q50 9 36 20 Z'),
-    o: 'M21 27 Q50 1 79 27 Q77 49 61 79 Q50 90 39 79 Q23 49 21 27 Z',
-    parts: [P('M60 0 H100 V100 H54 Q59 50 60 0 Z'), P('M40 0 H60 Q59 50 54 100 H46 Q41 50 40 0 Z'), P('M0 0 H40 Q41 50 46 100 H0 Z')],
-    extra: '',
-  },
-
-  // duga glava, kratka glava, brahijalis: pogled sprijeda
-  biceps: {
-    ctx: ARM_CTX,
-    parts: [
-      P('M61 7 Q69 30 66 54 Q62 72 52 78 Q50 54 52 30 Q54 16 61 7 Z'),
-      P('M39 7 Q31 30 34 54 Q38 72 48 78 Q50 54 48 30 Q46 16 39 7 Z'),
-      P('M64 58 Q73 68 68 84 Q60 92 52 82 Q58 70 64 58 Z'),
-    ],
-    extra: '',
-  },
-
-  // duga, bočna, medijalna glava tricepsa: pogled straga
-  triceps: {
-    ctx: ARM_CTX,
-    parts: [
-      P('M38 7 Q27 32 35 58 Q41 76 53 83 Q55 52 52 28 Q48 14 38 7 Z'),
-      P('M62 9 Q74 32 69 57 Q65 76 54 83 Q58 50 56 26 Q56 16 62 9 Z'),
-      P('M39 64 Q54 58 67 64 Q66 84 53 95 Q41 86 39 64 Z'),
-    ],
-    extra: '',
-  },
-
-  // pregibači, opružači: podlaktica sprijeda, od lakta prema zapešću
-  podlaktice: {
-    ctx: N('M31 3 Q50 -3 69 3 Q79 30 63 62 L59 99 L41 99 L37 62 Q21 30 31 3 Z'),
-    parts: [
-      P('M33 6 Q25 26 37 52 Q43 70 46 96 L51 96 Q52 60 51 30 Q48 12 33 6 Z'),
-      P('M67 6 Q75 26 63 52 Q57 70 54 96 L49 96 Q48 60 49 30 Q52 12 67 6 Z'),
-    ],
-    extra: '',
-  },
-
-  // gornji trbuh, donji trbuh, kosi mišići: ravni mišić u šest kocki i kosi mišići sa strana
-  trbuh: {
-    ctx: N('M24 6 Q50 -2 76 6 Q96 40 82 96 L18 96 Q4 40 24 6 Z'),
-    parts: [
-      (c) => ['M36 12 H48.5 V30 H36 Z', 'M51.5 12 H64 V30 H51.5 Z', 'M36 33 H48.5 V50 H36 Z', 'M51.5 33 H64 V50 H51.5 Z'].map((d) => path(d, c)).join(''),
-      (c) => ['M36 53 H48.5 V70 H36 Z', 'M51.5 53 H64 V70 H51.5 Z', 'M37 73 H48.5 V90 Q42 92 37 88 Z', 'M51.5 73 H63 V88 Q58 92 51.5 90 Z'].map((d) => path(d, c)).join(''),
-      PM('M68 12 Q88 34 84 62 Q80 86 68 94 Q73 60 68 12 Z'),
-    ],
-    extra: '',
-  },
+// Izrezi [x, y, širina, visina] po grupi; dva izreza = sprijeda i straga.
+const VIEWS = {
+  prsa:       [['front', [38, 50, 124, 108]]],
+  leđa:       [['back',  [34, 46, 132, 184]]],
+  noge:       [['front', [38, 228, 124, 174]], ['back', [38, 204, 124, 198]]],
+  ramena:     [['front', [14, 52, 64, 96]], ['back', [14, 52, 64, 96]]],
+  biceps:     [['front', [10, 98, 66, 72]]],
+  triceps:    [['back',  [10, 98, 66, 76]]],
+  podlaktice: [['front', [4, 154, 66, 102]]],
+  trbuh:      [['front', [56, 118, 88, 106]]],
 };
+const HEIGHT = 112;
+
+function silhouette() {
+  const shapes = SILHOUETTE.map(([d, m]) => `<path d="${d}"/>` + (m ? `<path d="${d}" ${MIRROR}/>` : '')).join('');
+  // Prvo debela crna linija, pa ista ispuna preko nje: ostaje samo vanjski obris.
+  return `<g fill="var(--text)" stroke="var(--text)" stroke-width="5" stroke-linejoin="round">${shapes}</g><g fill="var(--card2)" stroke="none">${shapes}</g>`;
+}
+
+function muscles(list, group, colors) {
+  return list.map(([id, d, mirror]) => {
+    const [g, idx] = id.split(':');
+    const hot = g === group && colors[+idx];
+    const attrs = hot
+      ? `fill="${colors[+idx]}" stroke="var(--text)" stroke-width="1.5" stroke-linejoin="round"`
+      : `fill="var(--body)" stroke="var(--text)" stroke-width="1" stroke-opacity=".45" stroke-linejoin="round"`;
+    const tf = g === 'biceps' || g === 'triceps' ? ' transform="translate(-16 0) scale(1.35 1)"' : '';
+    return `<path d="${d}" ${attrs}${tf}/>` + (mirror ? `<g ${MIRROR}><path d="${d}" ${attrs}${tf}/></g>` : '');
+  }).join('');
+}
 
 export function zoomMap(muscle, colors, label) {
-  const d = D[muscle];
-  if (!d) return '';
-  const body = d.parts.map((p, i) => p(colors[i])).join('');
-  const inner = d.o
-    ? `${d.ctx}<defs><clipPath id="zc-${muscle}"><path d="${d.o}"/></clipPath></defs>
-       <path d="${d.o}" fill="var(--body)"/><g clip-path="url(#zc-${muscle})">${body}</g>
-       <path d="${d.o}" fill="none" stroke="var(--muted)" stroke-width="1" opacity=".5"/>${d.extra || ''}`
-    : `${d.ctx || ''}${body}${d.extra || ''}`;
-  return `<svg class="zoom" viewBox="0 0 100 100" role="img" aria-label="${label || muscle}">${inner}</svg>`;
+  const views = VIEWS[muscle];
+  if (!views) return '';
+  const svgs = views.map(([v, box]) => {
+    const w = Math.round((HEIGHT * box[2]) / box[3]);
+    return `<svg class="zoom" viewBox="${box.join(' ')}" style="width:${w}px;height:${HEIGHT}px" role="img" aria-label="${label || muscle}">${silhouette()}${muscles(v === 'front' ? FRONT : BACK, muscle, colors)}</svg>`;
+  }).join('');
+  return `<div class="zoomwrap">${svgs}</div>`;
 }
