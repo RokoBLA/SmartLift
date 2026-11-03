@@ -89,6 +89,8 @@ Animacije su štapić-likovi nacrtani u SVG-u ([`js/animations.js`](js/animation
 
 - Hiperekstenzija / Back extension
 - Nošenje utega / Farmer's walk
+- Držanje pločice / Plate pinch
+- Valjak za zapešća / Wrist roller
 
 Isto vrijedi za sve vlastite vježbe koje korisnik doda. Animacija se dodaje u objekt `ANIMS` (dvije poze) i u `a` polje vježbe u `js/exercises.js`.
 
