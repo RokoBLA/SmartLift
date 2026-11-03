@@ -105,5 +105,11 @@ setInterval(() => { if (!document.hidden && route()[0] === 'home') render(true);
 if (configured) init(); else render();
 
 if ('serviceWorker' in navigator) {
+  // Kad stigne nova verzija, stranica se sama osvježi jednom (da ne ostane stara iz spremnika).
+  const had = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (had && !reloaded) { reloaded = true; location.reload(); }
+  });
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
