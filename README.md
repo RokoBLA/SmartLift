@@ -83,16 +83,13 @@ Nakon izmjena datoteka promijeni `VERSION` u [`sw.js`](sw.js) (npr. `smartlift-v
 - **Backup:** *Postavke → Izvezi backup* sprema JSON. *Uvezi backup* zamjenjuje sve trenutne podatke.
 - **Brisanje računa:** *Postavke → Obriši račun i sve podatke*. Traži lozinku (Firebase zahtijeva svježu prijavu) i upis riječi `OBRIŠI`. Briše treninge, korisnički dokument i račun.
 
-## Vježbe bez animacije
+## Vježbe i animacije
 
-Animacije su štapić-likovi nacrtani u SVG-u ([`js/animations.js`](js/animations.js)), bez tuđih materijala. Vježbe iz biblioteke koje **nemaju animaciju** (prikazuje se običan simbol):
+Biblioteka ima 115 vježbi (`js/exercises.js`), a svaka ima animaciju (82 različita pokreta). Animacije su štapić-likovi nacrtani u SVG-u (`js/animations.js`), bez tuđih materijala. Vježbe koje dijele isti pokret (npr. šipka i bučice) dijele i animaciju. Vlastite vježbe koje korisnik doda imaju običan simbol.
 
-- Hiperekstenzija / Back extension
-- Nošenje utega / Farmer's walk
-- Držanje pločice / Plate pinch
-- Valjak za zapešća / Wrist roller
+Pregled svih animacija: pokreni lokalni server i otvori `tests/animations.html`.
 
-Isto vrijedi za sve vlastite vježbe koje korisnik doda. Animacija se dodaje u objekt `ANIMS` (dvije poze) i u `a` polje vježbe u `js/exercises.js`.
+Nova vježba: dodaj redak u `LIB` (`js/exercises.js`) i, ako treba novi pokret, objekt u `ANIMS` (dvije poze od 14 brojeva). Testovi provjeravaju da svaka vježba ima animaciju i da svaki dio svakog mišića ima barem dvije vježbe.
 
 ## Struktura
 

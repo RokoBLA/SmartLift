@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { computeRecovery, sessionLoads } from '../js/recovery.js';
 import { suggest, historyFor } from '../js/progression.js';
 import { analyzeDay } from '../js/analysis.js';
-import { LIB } from '../js/exercises.js';
-import { hasAnimation } from '../js/animations.js';
+import { LIB, MUSCLES, PRESET } from '../js/exercises.js';
+import { hasAnimation, ANIMS } from '../js/animations.js';
 
 const H = 3600e3, now = Date.UTC(2026, 10, 3, 12);
 let n = 0;
@@ -90,10 +90,38 @@ t('analiza: pokrivene sve glave = nema prijedloga dodavanja', () => {
   const tips = analyzeDay(d('skull', 'pushdown', 'ohext'));
   assert.ok(!tips.some((x) => x.kind === 'add'));
 });
-t('animacije: izvještaj o vježbama bez animacije', () => {
-  const missing = LIB.filter((e) => !e.a || !hasAnimation(e.a)).map((e) => e.hr);
-  console.log('     bez animacije:', missing.join(', '));
-  assert.ok(LIB.every((e) => !e.a || hasAnimation(e.a)), 'oznaka animacije bez definicije');
+t('biblioteka: id-evi su jedinstveni, a svaka vježba gađa barem jedan dio', () => {
+  const ids = LIB.map((e) => e.id);
+  assert.deepEqual(ids.filter((x, i) => ids.indexOf(x) !== i), []);
+  assert.ok(LIB.every((e) => e.t.length && e.t.every(Boolean)), 'vježba bez dijela mišića');
+});
+t('biblioteka: svaki dio svake mišićne grupe ima barem dvije vježbe', () => {
+  for (const [m, info] of Object.entries(MUSCLES)) for (const p of info.parts) {
+    const k = LIB.filter((e) => e.m === m && e.t.includes(p)).length;
+    assert.ok(k >= 2, `${m}: „${p}“ ima ${k} vježbi`);
+  }
+});
+t('animacije: svaka vježba ima animaciju s ispravnim pozama', () => {
+  assert.deepEqual(LIB.filter((e) => !e.a || !hasAnimation(e.a)).map((e) => e.hr), []);
+  for (const [id, a] of Object.entries(ANIMS)) {
+    assert.equal(a.a.length, 14, id + ' poza a'); assert.equal(a.b.length, 14, id + ' poza b');
+    assert.ok([...a.a, ...a.b].every((v) => Number.isFinite(v) && v >= -2 && v <= 102), id + ' izvan okvira');
+  }
+});
+t('animacije: nema nekorištenih animacija', () => {
+  const used = new Set(LIB.map((e) => e.a));
+  assert.deepEqual(Object.keys(ANIMS).filter((k) => !used.has(k)), []);
+});
+t('analiza: redoslijed se gleda unutar iste grupe', () => {
+  assert.ok(!analyzeDay(d('squat', 'legext', 'ohp')).some((x) => x.kind === 'order'));
+  assert.ok(analyzeDay(d('fly', 'bench')).some((x) => x.kind === 'order'));
+});
+t('analiza: ista vježba dvaput i najviše dva prijedloga po grupi', () => {
+  assert.ok(analyzeDay(d('bench', 'bench')).some((x) => x.kind === 'dup'));
+  assert.ok(analyzeDay(d('shrug')).filter((x) => x.kind === 'add' && x.muscle === 'leđa').length <= 2);
+});
+t('analiza: predloženi plan ne predlaže vježbu koju već ima', () => {
+  for (const p of PRESET) for (const x of analyzeDay(d(...p.ex)).filter((y) => y.kind === 'add')) assert.ok(!p.ex.includes(x.exId));
 });
 
 console.log(`\n${n} testova prošlo.`);

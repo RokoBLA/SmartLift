@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="hr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galerija animacija</title><link rel="stylesheet" href="../css/styles.css">
+<style>
+  body { padding: 12px; }
+  #g { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 10px; }
+  .c { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px; text-align: center; font-size: 11px; }
+  .c .pair { display: flex; justify-content: center; gap: 4px; margin-bottom: 4px; }
+  .c .anim { width: 82px; height: 82px; }
+  .bar2 { display: flex; gap: 8px; margin-bottom: 12px; }
+</style></head>
+<body>
+<div class="bar2"><button class="chip sm" id="live">Pokreni</button><button class="chip sm" id="pa">Poza A</button><button class="chip sm" id="pb">Poza B</button><span id="cnt" class="muted small"></span></div>
+<div id="g"></div>
+<script type="module">
+  import { animHtml } from '../js/animations.js';
+  import { LIB } from '../js/exercises.js';
+  const groups = {};
+  LIB.forEach((e) => (groups[e.a] ||= []).push(e.hr));
+  const g = document.getElementById('g');
+  g.innerHTML = Object.entries(groups).map(([id, names]) => `<div class="c"><div class="pair">${animHtml(id)}${animHtml(id)}</div><b>${id}</b><br>${names.join(', ')}</div>`).join('');
+  document.getElementById('cnt').textContent = Object.keys(groups).length + ' animacija, ' + LIB.length + ' vježbi';
+  const all = (f) => g.querySelectorAll('svg').forEach(f);
+  g.querySelectorAll('.pair').forEach((p) => { const sv = p.querySelectorAll('svg'); sv[0].pauseAnimations(); sv[0].setCurrentTime(0); sv[1].pauseAnimations(); sv[1].setCurrentTime(1.2); });
+  document.getElementById('pa').onclick = () => all((s) => { s.pauseAnimations(); s.setCurrentTime(0); });
+  document.getElementById('pb').onclick = () => all((s) => { s.pauseAnimations(); s.setCurrentTime(1.2); });
+  document.getElementById('live').onclick = () => all((s) => s.unpauseAnimations());
+</script></body></html>
