@@ -5,6 +5,7 @@ import { computeRecovery, dayReadiness } from './recovery.js';
 import { actions } from './ui.js';
 import { state, plan, settings, pain, setPain, saveDoc, latestWeight } from './store.js';
 import { NOTICE } from './wizard.js';
+import { bodyMap, recoveryColor } from './bodymap.js';
 
 export const PAIN_TEXT = 'Odmori / preporučeno se posavjetuj s liječnikom ili fizioterapeutom';
 
@@ -42,18 +43,21 @@ export function homeView() {
 
 function muscleCard(m, r, hurt) {
   const name = MUSCLES[m].name;
+  const pct = Math.round(r.pct);
+  const color = hurt ? 'var(--bad)' : recoveryColor(r.pct);
   let bar, text;
   if (hurt) {
-    bar = `<div class="bar pain"><i style="width:100%"></i></div>`;
+    bar = `<div class="bar pain"><i style="width:100%;background:${color}"></i></div>`;
     text = `<b>${name}:</b> ${PAIN_TEXT}`;
   } else {
-    const pct = Math.round(r.pct);
-    bar = `<div class="bar ${r.status}" role="img" aria-label="${name} ${pct} posto"><i style="width:${Math.max(pct, 3)}%"></i></div>`;
+    bar = `<div class="bar" role="img" aria-label="${name} ${pct} posto"><i style="width:${Math.max(pct, 3)}%;background:${color}"></i></div>`;
     text = !r.hasData ? `<b>${name}:</b> nema treninga, spremna`
       : pct >= 100 ? `<b>${name}:</b> 100%, spremna`
       : `<b>${name}: ~${pct}%</b>, spremna za ${fmtHours(r.hoursLeft)}`;
   }
-  return `<div class="card mus"><div class="row between" style="margin-bottom:8px"><span class="small">${r.last && !hurt ? `<span class="muted">zadnji put ${ago(r.last)}</span>` : '&nbsp;'}</span>
+  return `<div class="card mus"><div class="row" style="gap:14px;align-items:center;margin-bottom:10px">
+      ${bodyMap(m, color, `${name}: skica mišića`)}
+      <div class="grow"><b style="font-size:17px">${name}</b><div class="muted small">${r.last && !hurt ? 'zadnji put ' + ago(r.last) : hurt ? 'označeno: boli me' : 'još nema treninga'}</div></div>
       <button class="link small" data-act="pain" data-m="${m}" data-on="${hurt ? 0 : 1}">${hurt ? 'Više me ne boli' : 'Boli me'}</button></div>
     ${bar}<p class="small" style="margin-top:8px">${text}</p></div>`;
 }
