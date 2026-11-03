@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SmartLift</title>
+<meta name="description" content="SmartLift: jednostavno praćenje treninga u teretani.">
+<meta name="theme-color" content="#F5F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15191C" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SmartLift">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="css/styles.css">
+<script>
+  // Tema se postavlja prije prikaza da ekran ne zatreperi.
+  try { var t = localStorage.getItem('sl_theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<div id="app">
+  <header class="top" id="top">
+    <div class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"><span>SmartLift</span></div>
+    <span class="pill off" id="offline" hidden>Bez interneta</span>
+  </header>
+  <main id="view" aria-live="polite"><p class="center muted pad">Učitavanje…</p></main>
+  <div id="timer" class="timer" hidden></div>
+  <nav class="nav" id="nav" hidden></nav>
+</div>
+<div id="overlay" class="overlay" hidden><div class="backdrop" data-act="close"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="toast" class="toast" hidden></div>
+<noscript><p style="padding:24px">SmartLift treba JavaScript da bi radio.</p></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

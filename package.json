@@ -1,0 +1,6 @@
+{
+  "name": "smartlift",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node tests/logic.test.mjs", "icons": "node tools/make-icons.cjs" }
+}
