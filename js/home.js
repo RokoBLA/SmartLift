@@ -2,10 +2,13 @@
 import { esc, fmtHours, ago, H } from './util.js';
 import { MUSCLES, MUSCLE_ORDER } from './exercises.js';
 import { computeRecovery, computePartRecovery, dayReadiness } from './recovery.js';
-import { actions } from './ui.js';
+import { actions, toast } from './ui.js';
 import { state, plan, settings, pain, setPain, saveDoc, latestWeight } from './store.js';
 import { NOTICE } from './wizard.js';
 import { zoomMap, recoveryColor } from './zoom.js';
+
+const EGG_TITLE = 'Boli te baš SVE?';
+const EGG_TEXT = 'To više nije trening, to je život. Službeno ti je dopušteno ležati na kauču, piti vodu i gledati u strop. Ako stvarno boli, javi se liječniku ili fizioterapeutu. A ako te ne boli ništa, a klikao si iz zabave: vidimo te. 😄';
 
 export const PAIN_TEXT = 'Odmori / preporučeno se posavjetuj s liječnikom ili fizioterapeutom';
 
@@ -21,12 +24,25 @@ export function homeView() {
   if (state.active) {
     next = `<div class="card"><b>Trening je u tijeku</b><p class="muted small" style="margin:4px 0 12px">${esc(state.active.dayName)}</p>
       <a class="btn primary block" href="#/workout">Nastavi trening</a></div>`;
+  } else if (MUSCLE_ORDER.every((m) => p[m])) {
+    next = `<div class="card"><b>${EGG_TITLE}</b><p class="small" style="margin-top:6px">${EGG_TEXT}</p></div>`;
   } else if (days.length) {
-    const best = days.map((d) => ({ d, r: dayReadiness(d, rec) ?? 100 })).sort((a, b) => b.r - a.r)[0];
-    next = `<div class="card"><div class="muted small">Preporuka za danas</div>
-      <div class="row between" style="margin-top:4px"><div class="grow"><b style="font-size:19px">${esc(best.d.name || 'Dan bez naziva')}</b>
-        <div class="muted small">Spremnost mišića: ${Math.round(best.r)}%</div></div>
-        <button class="btn primary" data-act="start-day" data-id="${best.d.id}">Kreni</button></div></div>`;
+    // Dani koji uključuju grupu koja te boli ne preporučuju se.
+    const hurtIn = (d) => [...new Set(d.exercises.map((e) => e.muscle))].filter((m) => p[m]);
+    const ok = days.filter((d) => !hurtIn(d).length);
+    const hurtNames = MUSCLE_ORDER.filter((m) => p[m]).map((m) => MUSCLES[m].name);
+    if (ok.length) {
+      const best = ok.map((d) => ({ d, r: dayReadiness(d, rec) ?? 100 })).sort((a, b) => b.r - a.r)[0];
+      const skipped = days.length - ok.length;
+      next = `<div class="card"><div class="muted small">Preporuka za danas</div>
+        <div class="row between" style="margin-top:4px"><div class="grow"><b style="font-size:19px">${esc(best.d.name || 'Dan bez naziva')}</b>
+          <div class="muted small">Spremnost mišića: ${Math.round(best.r)}%</div></div>
+          <button class="btn primary" data-act="start-day" data-id="${best.d.id}">Kreni</button></div>
+        ${skipped ? `<p class="hint" style="margin-top:8px">Preskočen ${skipped === 1 ? 'je jedan dan' : skipped + ' dana'} jer uključuje grupu koja te boli (${hurtNames.join(', ')}).</p>` : ''}</div>`;
+    } else {
+      next = `<div class="card"><b>Danas bolje odmori</b><p class="small" style="margin-top:6px">Svaki tvoj dan uključuje grupu koja te boli (${hurtNames.join(', ')}). Odmori ili složi dan bez nje. Ako bol traje, posavjetuj se s liječnikom ili fizioterapeutom.</p>
+        <a class="btn block" style="margin-top:12px" href="#/plan">Uredi plan</a></div>`;
+    }
   } else {
     next = `<div class="card empty"><p><b>Još nemaš plan treninga.</b></p><p class="muted">Složi prvi dan i odaberi vježbe.</p><a class="btn primary" href="#/plan">Složi plan</a></div>`;
   }
@@ -67,5 +83,8 @@ function muscleCard(m, r, hurt, parts) {
     ${bar}<p class="small" style="margin-top:8px">${text}</p></div>`;
 }
 
-actions.pain = (el) => setPain(el.dataset.m, el.dataset.on === '1');
+actions.pain = (el) => {
+  setPain(el.dataset.m, el.dataset.on === '1');
+  if (MUSCLE_ORDER.every((m) => pain()[m])) toast(EGG_TITLE + ' Odmori, prijatelju.', { ms: 6000 });
+};
 actions['notice-ok'] = () => saveDoc({ noticeSeen: true });

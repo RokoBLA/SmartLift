@@ -117,6 +117,17 @@ tools/make-icons.cjs    izrada PNG ikona
 U `js/modules/index.js` dodaj objekt `{ id, route, title, nav, icon, view(route) }`. Ruta postaje dostupna, a uz `nav: true` pojavljuje se u donjoj navigaciji.
 Za administratorski uvid trebat će proširiti pravila (npr. polje `shareProgress` na dokumentu korisnika i uloga admina) i to **bez Cloud Functions**, uz provjeru u pravilima.
 
+## Vježbe koje nedostaju
+
+Korisnici ne mogu dodavati vlastite vježbe, da usporedbe u fazi 3 imaju smisla (svi rade iste vježbe). Umjesto toga u odabiru vježbe postoji gumb „Nema tvoje vježbe? Javi nam“, koji otvara mail s pripremljenom porukom na adresu iz `js/config-app.js` (`REQUEST_EMAIL`). Nova vježba se dodaje u `js/exercises.js` (vidi gore).
+
+## Plan za fazu 3 (usporedba snage)
+
+- „Bolji si od 80 % korisnika“ i „ovu vježbu radi N korisnika“ traže zbirne podatke svih korisnika. Sadašnja pravila to ne dopuštaju (svatko čita samo svoje) i **ne treba** ih otvarati.
+- Predloženo rješenje bez Cloud Functions: korisnik koji to uključi (u postavkama) sam upisuje samo anonimni zapis o svojoj najboljoj seriji po vježbi u zasebnu kolekciju (npr. `stats/{vježba}/entries/{uid}`: spol, dobna skupina, težinski razred, procijenjeni 1RM). Pravila: pisati smije samo vlasnik zapisa, čitati svaki prijavljeni korisnik, bez emaila i imena.
+- Postotak i broj korisnika računaju se u pregledniku iz tih zapisa (uz ograničenje broja pročitanih dokumenata zbog besplatne kvote).
+- Tjelesna težina i profil već se spremaju u fazi 1 za te provjere.
+
 ## Napomene
 
 - Email se ne verificira (nije traženo u fazi 1).

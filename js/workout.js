@@ -27,6 +27,7 @@ function dayList() {
       const ms = [...new Set(d.exercises.map((e) => MUSCLES[e.muscle]?.name).filter(Boolean))].join(' · ');
       return `<div class="card" style="margin-bottom:10px"><div class="row between"><div class="grow"><b style="font-size:17px">${esc(d.name || 'Dan bez naziva')}</b>
         <div class="muted small">${d.exercises.length} ${plural(d.exercises.length, 'vježba', 'vježbe', 'vježbi')}${ms ? ' · ' + ms : ''}</div>
+        ${hurtIn(d).length ? `<div class="small" style="margin-top:4px;color:var(--bad);font-weight:600">Boli te: ${hurtIn(d).map((m) => MUSCLES[m].name).join(', ')}</div>` : ''}
         ${ready != null ? `<div class="small" style="margin-top:4px"><span class="dot ${ready >= 90 ? 'ok' : ready >= 60 ? 'warn' : 'bad'}"></span>Spremnost mišića: ${Math.round(ready)}%</div>` : ''}</div>
         <button class="btn primary" data-act="start-day" data-id="${d.id}" ${d.exercises.length ? '' : 'disabled'}>Kreni</button></div>
         ${d.exercises.length ? '' : '<p class="hint" style="margin-top:8px">Dodaj barem jednu vježbu u planu.</p>'}</div>`;
@@ -103,13 +104,20 @@ function entryForm(a, e, i) {
 
 const exAt = (i) => state.active.exercises[+i];
 
+const hurtIn = (d) => [...new Set(d.exercises.map((e) => e.muscle))].filter((m) => pain()[m]);
+
 actions['start-day'] = (el) => {
   if (state.active) { toast('Prvo završi trening koji je u tijeku.'); location.hash = '#/workout'; return; }
   const day = plan().find((d) => d.id === el.dataset.id);
   if (!day || !day.exercises.length) return;
-  openEx = 0;
-  startActive(day);
-  location.hash = '#/workout';
+  const go = () => { openEx = 0; startActive(day); location.hash = '#/workout'; };
+  const hurt = hurtIn(day);
+  if (!hurt.length) return go();
+  confirmSheet({
+    title: 'Ovaj dan uključuje grupu koja te boli',
+    text: `Označio si da te boli: ${hurt.map((m) => MUSCLES[m].name).join(', ')}. Preporuka je odmoriti, a ako bol traje, posavjetuj se s liječnikom ili fizioterapeutom. Svejedno započeti?`,
+    ok: 'Svejedno kreni', danger: true, onOk: go,
+  });
 };
 actions['ex-toggle'] = (el) => { openEx = openEx === +el.dataset.i ? null : +el.dataset.i; emit(); };
 
