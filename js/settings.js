@@ -4,7 +4,7 @@ import { MUSCLES, MUSCLE_ORDER } from './exercises.js';
 import { CLASS_LABEL, DEFAULT_WINDOWS } from './recovery.js';
 import { actions, changes, forms, openSheet, closeSheet, toast, confirmSheet } from './ui.js';
 import { A, auth } from './firebase.js';
-import { state, settings, saveSettings, pain, bodyWeights, latestWeight, addBodyWeight, removeBodyWeight, exportData, importData, deleteAccount, emit } from './store.js';
+import { state, settings, saveSettings, pain, bodyWeights, latestWeight, addBodyWeight, removeBodyWeight, exportData, importData, deleteAccount, hasPassword, emit } from './store.js';
 
 const themePref = () => { try { return localStorage.getItem('sl_theme') || 'auto'; } catch { return 'auto'; } };
 export function applyTheme() {
@@ -141,7 +141,7 @@ actions.logout = () => A.signOut(auth);
 actions['del-account'] = () => openSheet(`<h2>Obriši račun i sve podatke</h2>
   <p class="muted" style="margin:8px 0 14px">Briše se tvoj račun, plan, svi treninzi i težine. To se ne može poništiti. Prije toga možeš izvesti backup.</p>
   <form class="stack" data-form="del-account" novalidate>
-    <label class="field"><span>Lozinka</span><input class="input" name="pw" type="password" autocomplete="current-password"></label>
+    ${hasPassword() ? '<label class="field"><span>Lozinka</span><input class="input" name="pw" type="password" autocomplete="current-password"></label>' : '<p class="hint">Za potvrdu će se otvoriti Googleov prozor za prijavu.</p>'}
     <label class="field"><span>Za potvrdu upiši riječ OBRIŠI</span><input class="input" name="word" autocomplete="off" autocapitalize="characters"></label>
     <p class="err" id="del-err"></p>
     <button class="btn danger block" type="submit">Trajno obriši</button>
@@ -151,13 +151,13 @@ actions['del-account'] = () => openSheet(`<h2>Obriši račun i sve podatke</h2>
 forms['del-account'] = async (form) => {
   const err = document.getElementById('del-err');
   if (form.word.value.trim().toLocaleUpperCase('hr') !== 'OBRIŠI') { err.textContent = 'Upiši točno riječ OBRIŠI.'; return; }
-  if (!form.pw.value) { err.textContent = 'Upiši lozinku.'; return; }
+  if (hasPassword() && !form.pw.value) { err.textContent = 'Upiši lozinku.'; return; }
   if (!navigator.onLine) { err.textContent = 'Za brisanje je potrebna internetska veza.'; return; }
   err.textContent = 'Brišem…';
   try {
-    await deleteAccount(form.pw.value);
+    await deleteAccount(form.pw ? form.pw.value : '');
     closeSheet(); toast('Račun i svi podaci su obrisani.', { ms: 8000 });
   } catch (e) {
-    err.textContent = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' ? 'Lozinka nije točna.' : 'Brisanje nije uspjelo. Pokušaj ponovno.';
+    err.textContent = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' ? 'Lozinka nije točna.' : e.code === 'auth/popup-closed-by-user' ? 'Potvrda je prekinuta.' : 'Brisanje nije uspjelo. Pokušaj ponovno.';
   }
 };

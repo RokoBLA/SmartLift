@@ -18,6 +18,9 @@ const ERR = {
   'auth/invalid-email': 'Email nije ispravan.',
   'auth/too-many-requests': 'Previše pokušaja. Pričekaj malo pa pokušaj ponovno.',
   'auth/network-request-failed': 'Nema interneta. Za prijavu je potrebna veza.',
+  'auth/popup-closed-by-user': 'Prijava je prekinuta. Pokušaj ponovno.',
+  'auth/cancelled-popup-request': 'Prijava je prekinuta. Pokušaj ponovno.',
+  'auth/account-exists-with-different-credential': 'Za taj email već postoji račun s drugim načinom prijave.',
 };
 
 export function authView() {
@@ -31,6 +34,8 @@ export function authView() {
       <p class="err" role="alert">${esc(msg)}</p>
       <button class="btn primary block" type="submit" ${busy ? 'disabled' : ''}>${busy ? 'Sekundu…' : { login: 'Prijavi se', register: 'Registriraj se', reset: 'Pošalji poveznicu' }[mode]}</button>
     </form>
+    ${mode !== 'reset' ? `<div class="stack"><p class="center muted small">ili</p>
+      <button class="btn block" type="button" data-act="google" ${busy ? 'disabled' : ''}>Nastavi s Googleom</button></div>` : ''}
     <div class="stack center">
       ${mode === 'login' ? `<button class="link" data-act="auth-mode" data-m="reset">Zaboravio sam lozinku</button>
         <p class="muted small">Nemaš račun? <button class="link" data-act="auth-mode" data-m="register">Registriraj se</button></p>` : ''}
@@ -60,6 +65,22 @@ forms.auth = async (form) => {
     }
   } catch (e) {
     msg = ERR[e.code] || 'Nešto nije u redu. Pokušaj ponovno.';
+  }
+  busy = false; emit();
+};
+
+actions.google = async () => {
+  if (busy) return;
+  msg = ''; busy = true; emit();
+  const provider = new A.GoogleAuthProvider();
+  try {
+    await A.signInWithPopup(auth, provider);
+  } catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+      // Neki preglednici (npr. instalirana aplikacija) ne dopuštaju skočni prozor.
+      try { await A.signInWithRedirect(auth, provider); return; } catch (e2) { e = e2; }
+    }
+    msg = ERR[e.code] || 'Prijava Googleom nije uspjela. Pokušaj ponovno.';
   }
   busy = false; emit();
 };

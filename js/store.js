@@ -175,10 +175,11 @@ export async function importData(data) {
 }
 
 // ---- brisanje računa ----
+export const hasPassword = () => !!auth.currentUser?.providerData.some((p) => p.providerId === 'password');
 export async function deleteAccount(password) {
   const user = auth.currentUser;
-  const cred = A.EmailAuthProvider.credential(user.email, password);
-  await A.reauthenticateWithCredential(user, cred);
+  if (hasPassword()) await A.reauthenticateWithCredential(user, A.EmailAuthProvider.credential(user.email, password));
+  else await A.reauthenticateWithPopup(user, new A.GoogleAuthProvider());
   const snap = await F.getDocs(F.collection(db, 'users', user.uid, 'sessions'));
   await batchDelete(snap.docs.map((d) => d.ref));
   await F.deleteDoc(userRef());
