@@ -5,7 +5,7 @@
 // 3) Trajanje oporavka ide od donje do gornje granice prozora, prema tom omjeru.
 // 4) Postotak raste linearno od 0 % (kraj treninga) do 100 % (kraj prozora).
 // Ako se mišić ponovno trenira prije nego što se oporavi, dio preostalog umora se zbraja.
-import { MUSCLES, MUSCLE_ORDER } from './exercises.js';
+import { MUSCLES, MUSCLE_ORDER, exById } from './exercises.js';
 import { H, clamp } from './util.js';
 
 export const DEFAULT_WINDOWS = { small: [24, 48], medium: [48, 72], large: [72, 72] };
@@ -43,29 +43,60 @@ export function statusOf(pct) {
   return 'bad';
 }
 
+// Pretvara popis opterećenja jednog mišića (ili dijela) u trenutno stanje oporavka.
+function fold(list, cls, windows, muscle, now, ref) {
+  if (!list.length) return { pct: 100, hoursLeft: 0, status: 'ok', last: null, hasData: false };
+  const { lo, hi } = windowFor(muscle, windows);
+  let end = 0, start = 0;
+  for (const ev of [...list].sort((a, b) => a.t - b.t)) {
+    const dur = (lo + (hi - lo) * clamp(ev.load / ref, 0, 1)) * H;
+    const carry = 0.5 * Math.max(0, end - ev.t);
+    end = Math.min(ev.t + dur + carry, ev.t + hi * 1.5 * H);
+    start = ev.t;
+  }
+  const pct = clamp(((now - start) / (end - start)) * 100, 0, 100);
+  return { pct, hoursLeft: Math.max(0, (end - now) / H), status: statusOf(pct), last: start, hasData: true };
+}
+
+const byTime = (sessions) => [...sessions].sort((a, b) => (a.t || a.t0) - (b.t || b.t0));
+
 // Vraća { mišić: { pct, hoursLeft, status, last, hasData } } za sve grupe.
 export function computeRecovery(sessions, windows, now = Date.now()) {
   const events = {};
-  const sorted = [...sessions].sort((a, b) => (a.t || a.t0) - (b.t || b.t0));
-  for (const s of sorted) {
-    const loads = sessionLoads(s);
-    for (const [m, o] of Object.entries(loads)) (events[m] ||= []).push(o);
+  for (const s of byTime(sessions)) for (const [m, o] of Object.entries(sessionLoads(s))) (events[m] ||= []).push(o);
+  const result = {};
+  for (const m of MUSCLE_ORDER) {
+    const cls = MUSCLES[m].cls;
+    result[m] = fold(events[m] || [], cls, windows, m, now, REF_SETS[cls]);
+  }
+  return result;
+}
+
+// Isto, ali po dijelovima mišića (npr. duga glava tricepsa). Opterećenje dobivaju samo dijelovi
+// koje vježba gađa; vlastite vježbe (bez poznatih dijelova) utječu samo na grupu.
+const PART_REF = { small: 4, medium: 6, large: 7 };
+export function computePartRecovery(sessions, windows, now = Date.now()) {
+  const events = {};
+  for (const s of byTime(sessions)) {
+    const acc = {};
+    for (const ex of s.exercises || []) {
+      const lib = exById(ex.key);
+      if (!lib || lib.m !== ex.muscle) continue;
+      for (const x of ex.log || []) {
+        if (x.warm) continue;
+        for (const part of lib.t) {
+          const o = (acc[ex.muscle + '|' + part] ||= { load: 0, t: 0 });
+          o.load += rirLoad(x.rir);
+          o.t = Math.max(o.t, x.t || s.t || s.t0 || 0);
+        }
+      }
+    }
+    for (const [k, o] of Object.entries(acc)) (events[k] ||= []).push(o);
   }
   const result = {};
   for (const m of MUSCLE_ORDER) {
-    const list = (events[m] || []).sort((a, b) => a.t - b.t);
-    if (!list.length) { result[m] = { pct: 100, hoursLeft: 0, status: 'ok', last: null, hasData: false }; continue; }
-    const { cls, lo, hi } = windowFor(m, windows);
-    let end = 0, start = 0;
-    for (const ev of list) {
-      const norm = clamp(ev.load / REF_SETS[cls], 0, 1);
-      const dur = (lo + (hi - lo) * norm) * H;
-      const carry = 0.5 * Math.max(0, end - ev.t);
-      end = Math.min(ev.t + dur + carry, ev.t + hi * 1.5 * H);
-      start = ev.t;
-    }
-    const pct = clamp(((now - start) / (end - start)) * 100, 0, 100);
-    result[m] = { pct, hoursLeft: Math.max(0, (end - now) / H), status: statusOf(pct), last: start, hasData: true };
+    const cls = MUSCLES[m].cls;
+    result[m] = MUSCLES[m].parts.map((part) => ({ part, ...fold(events[m + '|' + part] || [], cls, windows, m, now, PART_REF[cls]) }));
   }
   return result;
 }

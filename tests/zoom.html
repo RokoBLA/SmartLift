@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="hr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Podskupine mišića</title><link rel="stylesheet" href="../css/styles.css">
+<style>body{padding:12px}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}</style></head>
+<body><div class="g" id="g"></div>
+<script type="module">
+  import { zoomMap, recoveryColor } from '../js/zoom.js';
+  import { MUSCLES, MUSCLE_ORDER } from '../js/exercises.js';
+  const levels = [5, 40, 70, 100];
+  document.getElementById('g').innerHTML = MUSCLE_ORDER.map((m) => {
+    const parts = MUSCLES[m].parts, colors = parts.map((_, i) => recoveryColor(levels[i % 4]));
+    return `<div class="card"><b>${MUSCLES[m].name}</b><div class="row" style="gap:12px;margin-top:8px">${zoomMap(m, colors, m)}<ul class="parts grow">${parts.map((p, i) => `<li><span class="dot" style="background:${colors[i]}"></span><span class="grow">${p}</span><span class="muted">${levels[i % 4]}%</span></li>`).join('')}</ul></div></div>`;
+  }).join('');
+</script></body></html>

@@ -135,7 +135,11 @@ label.field > span { display: block; font-size: 14px; font-weight: 600; margin-b
 .bar.pain > i { background: var(--bad); opacity: .35; }
 .mus { padding: 14px 16px; }
 .mus + .mus { margin-top: 10px; }
-.bodymap { width: 54px; height: 90px; flex: none; }
+.zoom { width: 112px; height: 112px; flex: none; }
+.parts { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.parts li { display: flex; align-items: center; gap: 4px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.parts li:last-child { border-bottom: 0; }
+.parts .dot { margin-right: 4px; flex: none; }
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 .dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
 

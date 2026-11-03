@@ -1,6 +1,6 @@
 // Testovi čiste logike: node tests/logic.test.mjs
 import assert from 'node:assert/strict';
-import { computeRecovery, sessionLoads } from '../js/recovery.js';
+import { computeRecovery, computePartRecovery, sessionLoads } from '../js/recovery.js';
 import { suggest, historyFor } from '../js/progression.js';
 import { analyzeDay } from '../js/analysis.js';
 import { LIB, MUSCLES, PRESET } from '../js/exercises.js';
@@ -43,6 +43,20 @@ t('oporavak: ponovni trening prije oporavka produljuje', () => {
   const a = sess('a', now - 30 * H, [['bench', 'prsa', Array(8).fill([60, 8, 1])]]);
   const b = sess('b', now - 2 * H, [['bench', 'prsa', Array(8).fill([60, 8, 1])]]);
   assert.ok(computeRecovery([a, b], null, now).prsa.hoursLeft > computeRecovery([b], null, now).prsa.hoursLeft);
+});
+
+t('dijelovi: troši se samo ono što vježba gađa', () => {
+  const s = sess('p1', now - 2 * H, [['pushdown', 'triceps', Array(4).fill([30, 12, 1])]]);
+  const r = computePartRecovery([s], null, now).triceps;
+  const by = Object.fromEntries(r.map((x) => [x.part, x]));
+  assert.ok(by['bočna glava tricepsa'].pct < 20 && by['medijalna glava tricepsa'].pct < 20);
+  assert.equal(by['duga glava tricepsa'].pct, 100);
+  assert.equal(by['duga glava tricepsa'].hasData, false);
+});
+t('dijelovi: vlastita vježba ne troši dijelove, a grupu da', () => {
+  const s = sess('p2', now - 2 * H, [['c_moja', 'biceps', Array(4).fill([10, 10, 1])]]);
+  assert.ok(computePartRecovery([s], null, now).biceps.every((x) => !x.hasData));
+  assert.equal(computeRecovery([s], null, now).biceps.hasData, true);
 });
 
 const ex = { sets: 3, repMin: 8, repMax: 10 };

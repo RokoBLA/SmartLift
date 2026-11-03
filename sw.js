@@ -1,12 +1,12 @@
 // Service worker: aplikacija radi bez interneta.
 // Vlastite datoteke: prvo iz spremnika, osvježavanje u pozadini. Firebase (gstatic): isto.
 // Firestore API pozivi ne prolaze kroz spremnik (nju rješava Firestore offline podrška).
-const VERSION = 'smartlift-v7';
+const VERSION = 'smartlift-v8';
 const SHELL = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/styles.css',
   'js/app.js', 'js/firebase.js', 'js/store.js', 'js/ui.js', 'js/util.js', 'js/auth.js', 'js/wizard.js',
   'js/home.js', 'js/workout.js', 'js/plan.js', 'js/picker.js', 'js/history.js', 'js/settings.js',
-  'js/exercises.js', 'js/animations.js', 'js/bodymap.js', 'js/recovery.js', 'js/progression.js', 'js/analysis.js', 'js/modules/index.js',
+  'js/exercises.js', 'js/animations.js', 'js/zoom.js', 'js/recovery.js', 'js/progression.js', 'js/analysis.js', 'js/modules/index.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png',
 ];
 
